@@ -64,3 +64,80 @@ SELECT idmeczu, gospodarze[1] AS Iset, (SELECT(SUM(c)) FROM UNNEST(gospodarze) c
 FROM siatkowka.statystyki <br />
 ) AS dane <br />
 WHERE SQRT(Iset)<LOG(2, gospodarze) <br />
+# lab4
+### zamówili pudełko Kremowa fantazja lub Kolekcja jesienna,
+- SELECT DISTINCT k.nazwa, k.ulica, k.miejscowosc FROM klienci k <br />
+JOIN zamowienia z ON z.idklienta=k.idklienta <br />
+JOIN artykuly a ON a.idzamowienia=z.idzamowienia <br />
+JOIN pudelka p ON a.idpudelka=p.idpudelka <br />
+WHERE p.nazwa IN ('Kremowa fantazja', 'Kolekcja jesienna') <br />
+### zamówili co najmniej 2 sztuki pudełek Kremowa fantazja lub Kolekcja jesienna w ramach jednego zamówienia,
+- SELECT DISTINCT k.nazwa, k.ulica, k.miejscowosc FROM klienci k<br />
+JOIN zamowienia z ON z.idklienta=k.idklienta<br />
+JOIN artykuly a ON a.idzamowienia=z.idzamowienia<br />
+JOIN pudelka p ON p.idpudelka=a.idpudelka<br />
+WHERE p.nazwa IN ('Kremowa fantazja', 'Kolekcja jesienna') AND sztuk>1<br />
+### zamówili pudełka, które zawierają czekoladki z migdałami.
+- SELECT DISTINCT k.nazwa, k.ulica, k.miejscowosc FROM klienci k,br />
+JOIN zamowienia z ON z.idklienta=k.idklienta<br />
+JOIN artykuly a ON a.idzamowienia=z.idzamowienia<br />
+JOIN zawartosc s ON s.idpudelka=a.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=s.idczekoladki<br />
+WHERE cz.orzechy LIKE 'migdały'<br />
+### informacje na temat wszystkich pudełek,
+- SELECT p.nazwa, p.opis, cz.nazwa, cz.opis FROM pudelka p
+JOIN zawartosc z ON z.idpudelka = p.idpudelka
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki
+### informacje na temat pudełek, których nazwa zawiera słowo Kolekcja.
+- SELECT p.nazwa, p.opis, cz.nazwa, cz.opis FROM pudelka p <br />
+JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki <br />
+WHERE p.nazwa LIKE 'Kolekcja %'<br />
+### zawierają czekoladki o wartości klucza głównego d09
+- SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE cz.idczekoladki = 'd09'<br />
+### zawierają przynajmniej jedną czekoladkę, której nazwa zaczyna się na S,
+- SELECT DISTINCT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE cz.nazwa LIKE 'S%'<br />
+### zawierają przynajmniej 4 sztuki czekoladek jednego gatunku (o takim samym kluczu głównym),
+- SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE z.sztuk>=4<br />
+### zawierają czekoladki z nadzieniem truskawkowym,
+- SELECT DISTINCT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE cz.nadzienie='truskawki'<br />
+### nie zawierają czekoladek w gorzkiej czekoladzie,
+- SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+EXCEPT <br />
+SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE cz.czekolada = 'gorzka'<br />
+### zawierają co najmniej 3 sztuki czekoladki Gorzka truskawkowa,
+- SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE cz.nazwa='Gorzka truskawkowa' AND z.sztuk>=3<br />
+### nie zawierają czekoladek z orzechami,
+- SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+EXCEPT <br />
+SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE cz.orzechy IS NOT NULL <br />
+### zawierają przynajmniej jedną czekoladkę bez nadzienia.
+- SELECT DISTINCT p.nazwa, p.opis, p.cena FROM pudelka p<br />
+JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+WHERE cz.nadzienie IS NULL<br />

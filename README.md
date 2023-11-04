@@ -22,47 +22,44 @@ WHERE nazwa > 'E' AND nazwa< 'K%' AND nazwa NOT LIKE 'S%' AND nazwa NOT LIKE 'T%
 WHERE LENGTH(telefon::text)>'11';
 ### |UNION| Masa mieści się w przedziale od 15 do 24 g lub koszt produkcji mieści się w przedziale od 15 do 24 gr,
 - SELECT idczekoladki, nazwa, masa, koszt FROM czekoladki<br />
-WHERE masa BETWEEN 15 AND 24<br />
+&emsp; WHERE masa BETWEEN 15 AND 24<br />
 UNION <br />
 SELECT idczekoladki, nazwa, masa, koszt FROM czekoladki;<br />
 ### |EXCEPT| Identyfikatory pudełek, które nigdy nie zostały zamówione,
 - SELECT idpudelka FROM pudelka p<br />
 EXCEPT <br />
 SELECT idpudelka FROM artykuly a<br />
-JOIN zamowienia z ON z.idzamowienia = a.idzamowienia; <br />
+&emsp; JOIN zamowienia z ON z.idzamowienia = a.idzamowienia; <br />
 ### |EXCEPT| Masa mieści się w przedziale od 25 do 35 g, ale koszt produkcji nie mieści się w przedziale od 25 do 35 gr
 - SELECT idczekoladki, nazwa, masa, koszt FROM czekoladki<br />
-WHERE masa BETWEEN 25 AND 35<br />
+&emsp; WHERE masa BETWEEN 25 AND 35<br />
 EXCEPT<br />
 SELECT idczekoladki, nazwa, masa, koszt FROM czekoladki<br />
-WHERE koszt BETWEEN 0.25 AND 0.35;<br />
+&emsp; WHERE koszt BETWEEN 0.25 AND 0.35;<br />
 ### Identyfikator meczu, sumę punktów zdobytych przez gospodarzy i sumę punktów zdobytych przez gości,
 - SELECT idmeczu, SUM(h) AS gospodarze, SUM(a) AS goscie FROM (<br />
-SELECT idmeczu, unnest(gospodarze) AS h, unnest(goscie) AS a FROM siatkowka.statystyki<br />
-	) GROUP BY idmeczu<br />
-	ORDER BY idmeczu;<br />
+&emsp; SELECT idmeczu, unnest(gospodarze) AS h, unnest(goscie) AS a FROM siatkowka.statystyki<br />
+) GROUP BY idmeczu<br />
+ORDER BY idmeczu;<br />
  ### Identyfikator meczu, sumę punktów zdobytych przez gospodarzy i sumę punktów zdobytych przez gości, dla meczów, które skończyły się po 5 setach i zwycięzca ostatniego seta zdobył w nim ponad 15 punktów,
  - SELECT idmeczu, (SELECT SUM(c) FROM unnest(gospodarze) c) AS gospodarze, <br />
 (SELECT SUM(a) FROM unnest(goscie) a) AS goscie FROM siatkowka.statystyki <br />
 WHERE gospodarze[5] IS NOT null AND gospodarze[5]>15 OR goscie[5]>15; <br />
 ### Identyfikator i wynik meczu w formacie x:y, np. 3:1 (wynik jest pojedynczą kolumną – napisem),
-- SELECT idmeczu, SUM(CASE WHEN gospodarze>goscie THEN 1 ELSE 0 END) || ':' || <br />
-SUM(CASE WHEN goscie>gospodarze THEN 1 ELSE 0 END) AS "x:y" FROM ( <br />
-SELECT idmeczu, UNNEST(gospodarze) AS gospodarze, UNNEST(goscie) AS goscie <br /> 
-FROM siatkowka.statystyki <br />
-	) AS dane <br />
-	GROUP BY idmeczu <br />
+- SELECT idmeczu, SUM(CASE WHEN gospodarze>goscie THEN 1 ELSE 0 END) || ':' || SUM(CASE WHEN goscie>gospodarze THEN 1 ELSE 0 END) AS "x:y" FROM ( <br />
+&emsp; SELECT idmeczu, UNNEST(gospodarze) AS gospodarze, UNNEST(goscie) AS goscie FROM siatkowka.statystyki <br />
+) AS dane <br />
+GROUP BY idmeczu <br />
 ORDER BY idmeczu; <br />
 ### Identyfikator meczu, sumę punktów zdobytych przez gospodarzy i sumę punktów zdobytych przez gości, dla meczów, w których gospodarze zdobyli ponad 100 punktów,
 - SELECT idmeczu, gospodarze, goscie FROM ( <br />
-SELECT idmeczu, (SELECT(SUM(c)) FROM UNNEST(gospodarze) c) AS gospodarze, <br /> 
-(SELECT(SUM(d)) FROM UNNEST(goscie) d) AS goscie FROM siatkowka.statystyki <br />
+&emsp; SELECT idmeczu, (SELECT(SUM(c)) FROM UNNEST(gospodarze) c) AS gospodarze, (SELECT(SUM(d)) FROM UNNEST(goscie) d) AS goscie FROM siatkowka.statystyki <br />
 ) AS dane <br />
 WHERE gospodarze > 100; <br />
 ###  Identyfikator meczu, liczbę punktów zdobytych przez gospodarzy w pierwszym secie, sumę punktów zdobytych w meczu przez gospodarzy, dla meczów, w których pierwiastek kwadratowy z liczby punktów zdobytych przez gospodarzy w pierwszym secie jest mniejszy niż logarytm o podstawie 2 z sumy punktów zdobytych w meczu przez gospodarzy
 - SELECT idmeczu, Iset, gospodarze FROM ( <br />
-SELECT idmeczu, gospodarze[1] AS Iset, (SELECT(SUM(c)) FROM UNNEST(gospodarze) c) AS gospodarze <br />
-FROM siatkowka.statystyki <br />
+&emsp; SELECT idmeczu, gospodarze[1] AS Iset, (SELECT(SUM(c)) FROM UNNEST(gospodarze) c) AS gospodarze <br />
+&emsp; FROM siatkowka.statystyki <br />
 ) AS dane <br />
 WHERE SQRT(Iset)<LOG(2, gospodarze); <br />
 # LAB4
@@ -86,9 +83,9 @@ JOIN zawartosc s ON s.idpudelka=a.idpudelka<br />
 JOIN czekoladki cz ON cz.idczekoladki=s.idczekoladki<br />
 WHERE cz.orzechy LIKE 'migdały';<br />
 ### Informacje na temat wszystkich pudełek,
-- SELECT p.nazwa, p.opis, cz.nazwa, cz.opis FROM pudelka p
-JOIN zawartosc z ON z.idpudelka = p.idpudelka
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki;
+- SELECT p.nazwa, p.opis, cz.nazwa, cz.opis FROM pudelka p <br />
+JOIN zawartosc z ON z.idpudelka = p.idpudelka <br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki; <br />
 ### Informacje na temat pudełek, których nazwa zawiera słowo Kolekcja.
 - SELECT p.nazwa, p.opis, cz.nazwa, cz.opis FROM pudelka p <br />
 JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
@@ -112,7 +109,7 @@ WHERE z.sztuk>=4;<br />
 ### Zawierają czekoladki z nadzieniem truskawkowym,
 - SELECT DISTINCT p.nazwa, p.opis, p.cena FROM pudelka p<br />
 JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+OIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 WHERE cz.nadzienie='truskawki';<br />
 ### Nie zawierają czekoladek w gorzkiej czekoladzie,
 - SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
@@ -144,16 +141,16 @@ JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 WHERE cz.nadzienie IS NULL;<br />
 ### Wyświetl wartości kluczy głównych oraz nazwy czekoladek, których koszt jest większy od kosztu czekoladki o wartości klucza głównego równej d08.
 - SELECT idczekoladki, nazwa FROM (<br />
-SELECT idczekoladki, nazwa, koszt FROM czekoladki<br />
-ORDER BY koszt DESC<br />
+&emsp; SELECT idczekoladki, nazwa, koszt FROM czekoladki<br />
+&emsp; ORDER BY koszt DESC<br />
 ) WHERE koszt>(SELECT koszt FROM czekoladki WHERE idczekoladki='d08');<br />
 ### Kto (nazwa klienta) złożył zamówienia na takie same czekoladki (pudełka) jak zamawiała Górka Alicja.
 - WITH dane AS(<br />
-SELECT DISTINCT k.nazwa as imie, p.nazwa FROM pudelka p <br />
-JOIN artykuly a ON a.idpudelka=p.idpudelka<br />
-JOIN zamowienia z ON z.idzamowienia=a.idzamowienia<br />
-JOIN klienci k ON z.idklienta=k.idklienta<br />
-WHERE k.nazwa='Górka Alicja'<br />
+&emsp; SELECT DISTINCT k.nazwa as imie, p.nazwa FROM pudelka p <br />
+&emsp; JOIN artykuly a ON a.idpudelka=p.idpudelka<br />
+&emsp; JOIN zamowienia z ON z.idzamowienia=a.idzamowienia<br />
+&emsp; JOIN klienci k ON z.idklienta=k.idklienta<br />
+&emsp; WHERE k.nazwa='Górka Alicja'<br />
 	)<br />
 SELECT DISTINCT k.nazwa FROM pudelka p<br />
 JOIN artykuly a ON a.idpudelka=p.idpudelka<br />
@@ -162,11 +159,11 @@ JOIN klienci k ON z.idklienta=k.idklienta<br />
 WHERE p.nazwa IN (SELECT nazwa FROM dane) AND k.nazwa!='Górka Alicja';<br />
 ### Kto (nazwa klienta, adres) złożył zamówienia na takie same czekoladki (pudełka) jak zamawiali klienci z Katowic.
 - WITH dane AS(<br />
-SELECT DISTINCT k.nazwa as imie, p.nazwa FROM pudelka p<br />
-JOIN artykuly a ON a.idpudelka=p.idpudelka<br />
-JOIN zamowienia z ON z.idzamowienia=a.idzamowienia<br />
-JOIN klienci k ON z.idklienta=k.idklienta;<br />
-WHERE k.miejscowosc='Katowice'<br />
+&emsp; SELECT DISTINCT k.nazwa as imie, p.nazwa FROM pudelka p<br />
+&emsp; JOIN artykuly a ON a.idpudelka=p.idpudelka<br />
+&emsp; JOIN zamowienia z ON z.idzamowienia=a.idzamowienia<br />
+&emsp; JOIN klienci k ON z.idklienta=k.idklienta;<br />
+&emsp; WHERE k.miejscowosc='Katowice'<br />
 	)<br />
 SELECT DISTINCT k.nazwa, k.ulica, k.miejscowosc FROM pudelka p<br />
 JOIN artykuly a ON a.idpudelka=p.idpudelka<br />
@@ -176,61 +173,61 @@ WHERE p.nazwa IN (SELECT nazwa FROM dane) AND k.miejscowosc!='Katowice';<br />
 # LAB5
 ### Pudełka, w którym jest najwięcej czekoladek (uwaga: konieczne jest użycie LIMIT)
 - SELECT idpudelka, COUNT(idczekoladki) FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br /?
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; SELECT p.idpudelka, cz.idczekoladki FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br /?
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 ) GROUP BY idpudelka<br />
 ORDER BY count DESC<br />
 LIMIT 1;<br/>
 ### Łącznej liczby czekoladek w poszczególnych pudełkach,
 - SELECT idpudelka, SUM(sztuk) AS ilosc FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki, z.sztuk FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 ) GROUP BY idpudelka<br />
 ORDER BY idpudelka;<br />
 ### Łącznej liczby czekoladek bez orzechów w poszczególnych pudełkach,
 - SELECT idpudelka, SUM(sztuk) AS ilosc FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki, cz.orzechy, z.sztuk FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
-WHERE cz.orzechy IS NULL<br />
+&emsp; SELECT p.idpudelka, cz.idczekoladki, cz.orzechy, z.sztuk FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; WHERE cz.orzechy IS NULL<br />
 ) GROUP BY idpudelka;<br />
 ### Łącznej liczby czekoladek w mlecznej czekoladzie w poszczególnych pudełkach.
 - SELECT idpudelka, SUM(sztuk) AS ilosc FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki, cz.czekolada, z.sztuk FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
-WHERE cz.czekolada = 'mleczna'<br />
+&emsp; SELECT p.idpudelka, cz.idczekoladki, cz.czekolada, z.sztuk FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; WHERE cz.czekolada = 'mleczna'<br />
 ) GROUP BY idpudelka;<br />
 ### Masy poszczególnych pudełek,
 - SELECT idpudelka, SUM(sztuk*masa) FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 ) GROUP BY idpudelka <br />
 ORDER BY idpudelka;<br />
 ### Pudełka o największej masie,
 - SELECT idpudelka, SUM(sztuk*masa) AS masa FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 ) GROUP BY idpudelka <br />
 ORDER BY masa DESC<br />
 LIMIT 1;<br />
 ### Średniej masy pudełka w ofercie cukierni,
 - SELECT AVG(masa) FROM (<br />
-SELECT idpudelka, SUM(sztuk*masa) AS masa FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; SELECT idpudelka, SUM(sztuk*masa) AS masa FROM (<br />
+&emsp; &emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
+&emsp; &emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; &emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 ) GROUP BY idpudelka<br />
 )<br />
 ### Średniej wagi pojedynczej czekoladki w poszczególnych pudełkach,
 - SELECT idpudelka, SUM(sztuk*masa)/SUM(sztuk)::float AS masa FROM (<br />
-SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
-JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 ) GROUP BY idpudelka;<br />
 ### Liczby zamówień na poszczególne dni,
 - SELECT datarealizacji, COUNT(idzamowienia) FROM zamowienia<br />
@@ -240,35 +237,35 @@ ORDER BY datarealizacji;<br />
 - SELECT COUNT(idzamowienia) FROM zamowienia <br />
 ### Łącznej wartości wszystkich zamówień,
 - SELECT nazwa, COUNT(nazwa) AS ilosc_zamowien, SUM(sztuk*cena) AS zakupy FROM (<br />
-SELECT k.nazwa, z.idzamowienia, a.sztuk, p.cena FROM klienci k<br />
-JOIN zamowienia z ON z.idklienta=k.idklienta<br />
-JOIN artykuly a ON a.idzamowienia=z.idzamowienia<br />
-JOIN pudelka p ON p.idpudelka=a.idpudelka<br />
+&emsp; SELECT k.nazwa, z.idzamowienia, a.sztuk, p.cena FROM klienci k<br />
+&emsp; JOIN zamowienia z ON z.idklienta=k.idklienta<br />
+&emsp; JOIN artykuly a ON a.idzamowienia=z.idzamowienia<br />
+&emsp; JOIN pudelka p ON p.idpudelka=a.idpudelka<br />
 ) GROUP BY nazwa<br />
 ORDER BY nazwa;<br />
 ### Czekoladki, która występuje w największej liczbie pudełek,
 - SELECT idczekoladki, COUNT(idczekoladki) AS ilosc FROM(<br />
-SELECT DISTINCT a.idpudelka, cz.idczekoladki FROM czekoladki cz<br />
-JOIN zawartosc s ON s.idczekoladki=cz.idczekoladki<br />
-JOIN artykuly a ON a.idpudelka=s.idpudelka<br />
-JOIN zamowienia z ON z.idzamowienia=a.idzamowienia<br />
+&emsp; SELECT DISTINCT a.idpudelka, cz.idczekoladki FROM czekoladki cz<br />
+&emsp; JOIN zawartosc s ON s.idczekoladki=cz.idczekoladki<br />
+&emsp; JOIN artykuly a ON a.idpudelka=s.idpudelka<br />
+&emsp; JOIN zamowienia z ON z.idzamowienia=a.idzamowienia<br />
 ) GROUP BY idczekoladki<br />
 ORDER BY ilosc DESC<br />
 LIMIT 1;<br />
 ### Pudełka, które zawiera najwięcej czekoladek bez orzechów,
 - WITH DANE as (<br />
-	SELECT p.nazwa, SUM(z.sztuk) AS ilosc FROM pudelka p<br />
-	JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-	JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
-	WHERE cz.orzechy IS NULL<br />
-	GROUP BY p.nazwa<br />
+&emsp; SELECT p.nazwa, SUM(z.sztuk) AS ilosc FROM pudelka p<br />
+&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp; WHERE cz.orzechy IS NULL<br />
+&emsp; GROUP BY p.nazwa<br />
 )<br />
 SELECT nazwa, ilosc FROM dane <br />
 WHERE ilosc=(SELECT MAX(ilosc) FROM dane);<br />
 ### Czekoladki, która występuje w najmniejszej liczbie pudełek,
 - WITH dane AS (<br />
-	SELECT s.idczekoladki AS nazwa, COUNT(s.idczekoladki) AS ilosc FROM zawartosc s<br />
-	GROUP BY nazwa<br />
+&emsp; SELECT s.idczekoladki AS nazwa, COUNT(s.idczekoladki) AS ilosc FROM zawartosc s<br />
+&emsp; GROUP BY nazwa<br />
 ) <br />
 SELECT nazwa FROM dane <br />
 WHERE ilosc = (SELECT MIN(ilosc) FROM dane);<br />
@@ -280,8 +277,8 @@ EXCEPT <br />
 SELECT s.idczekoladki FROM zawartosc s;<br />
 ### Pudełko, które jest najczęściej zamawiane przez klientów.
 - WITH DANE AS (<br />
-	SELECT a.idpudelka AS nazwa, COUNT(a.idpudelka) AS ilosc FROM artykuly a<br />
-	GROUP BY nazwa<br />
+&emsp; SELECT a.idpudelka AS nazwa, COUNT(a.idpudelka) AS ilosc FROM artykuly a<br />
+&emsp; GROUP BY nazwa<br />
 )<br />
 SELECT nazwa FROM dane<br />
 WHERE ilosc = (SELECT MAX(ilosc) FROM dane);<br />

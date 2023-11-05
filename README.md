@@ -236,6 +236,14 @@ ORDER BY datarealizacji;<br />
 ### Łącznej liczby wszystkich zamówień,
 - SELECT COUNT(idzamowienia) FROM zamowienia <br />
 ### Łącznej wartości wszystkich zamówień,
+- SELECT SUM(zakupy) FROM (<br />
+&emsp;SELECT z.idzamowienia, p.idpudelka, a.sztuk, a.sztuk * p.cena AS zakupy FROM klienci k<br />
+&emsp;JOIN zamowienia Z on z.idklienta=k.idklienta<br />
+&emsp;JOIN artykuly a ON a.idzamowienia=z.idzamowienia<br />
+&emsp;JOIN pudelka p ON p.idpudelka=a.idpudelka<br />
+) <br />
+
+### Klientów, liczby złożonych przez nich zamówień i łącznej wartości złożonych przez nich zamówień.
 - SELECT nazwa, COUNT(nazwa) AS ilosc_zamowien, SUM(sztuk*cena) AS zakupy FROM (<br />
 &emsp; SELECT k.nazwa, z.idzamowienia, a.sztuk, p.cena FROM klienci k<br />
 &emsp; JOIN zamowienia z ON z.idklienta=k.idklienta<br />
@@ -282,3 +290,71 @@ SELECT s.idczekoladki FROM zawartosc s;<br />
 )<br />
 SELECT nazwa FROM dane<br />
 WHERE ilosc = (SELECT MAX(ilosc) FROM dane);<br />
+### Liczby zamówień na poszczególne kwartały,
+- SELECT kwartał, COUNT(idzamowienia) FROM (<br />
+&emsp; SELECT DATE_PART('quarter', datarealizacji) AS kwartał, idzamowienia FROM zamowienia<br />
+)GROUP BY kwartał;<br />
+### Liczby zamówień na poszczególne miesiące,
+- SELECT month, COUNT(idzamowienia) FROM (<br />
+SELECT DATE_PART('month', datarealizacji) AS month , idzamowienia FROM zamowienia<br />
+) GROUP BY month;<br />
+### Liczby zamówień do realizacji w poszczególnych tygodniach,
+- SELECT week, COUNT(idzamowienia) FROM (<br />
+&emsp; SELECT DATE_PART('week', datarealizacji) AS week, idzamowienia FROM zamowienia<br />
+&emsp; ORDER BY week<br />
+) GROUP BY week;<br />
+### Liczby zamówień do realizacji w poszczególnych miejscowościach.
+- SELECT miejscowosc, COUNT(miejscowosc) FROM (<br />
+&emsp;SELECT k.miejscowosc, z.idzamowienia FROM klienci k<br />
+&emsp;JOIN zamowienia z ON z.idklienta=k.idklienta<br />
+)GROUP BY miejscowosc<br />
+ORDER BY miejscowosc;<br />
+### Łącznej masy wszystkich pudełek czekoladek znajdujących się w cukierni,
+- SELECT SUM(masa) FROM (<br />
+&emsp;SELECT p.idpudelka, cz.idczekoladki, cz.masa * z.sztuk AS masa FROM zawartosc z<br />
+&emsp;JOIN pudelka p ON p.idpudelka=z.idpudelka<br />
+&emsp;JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+);<br />
+### Łącznej wartości wszystkich pudełek czekoladek znajdujących się w cukierni.
+- SELECT SUM(cena) FROM (<br />
+&emsp;SELECT idpudelka, cena FROM pudelka<br />
+);<br />
+### Zysk ze sprzedaży jednej sztuki poszczególnych pudełek (różnica między ceną pudełka i kosztem jego wytworzenia),
+- SELECT idpudelka, cena-SUM(koszt) AS zysk FROM (<br />
+&emsp;SELECT p.idpudelka, p.cena, cz.idczekoladki, cz.koszt*z.sztuk AS koszt FROM zawartosc z<br />
+&emsp;JOIN pudelka p ON p.idpudelka=z.idpudelka<br />
+&emsp;JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+) GROUP BY idpudelka, cena<br />
+ORDER BY idpudelka;<br />
+### Zysk ze sprzedaży zamówionych pudełek,
+- WITH dane AS (<br />
+&emsp;SELECT idpudelka, cena-SUM(koszt) AS zysk FROM (<br />
+&emsp;&emsp;SELECT p.idpudelka, p.cena, cz.koszt * z.sztuk AS koszt FROM zawartosc z<br />
+&emsp;&emsp;JOIN pudelka p ON p.idpudelka=z.idpudelka<br />
+&emsp;&emsp;JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+) GROUP BY idpudelka, cena<br />
+ORDER BY idpudelka<br />
+)<br />
+SELECT idpudelka, SUM(zakup) AS zysk FROM (<br />
+&emsp;SELECT idzamowienia, a.idpudelka, sztuk * zysk AS zakup FROM artykuly a<br />
+&emsp;JOIN dane ON a.idpudelka=dane.idpudelka<br />
+) GROUP BY idpudelka<br />
+ORDER BY idpudelka;<br />
+### Zysk ze sprzedaży wszystkich pudełek czekoladek w cukierni.
+- WITH dane AS (<br />
+&emsp;SELECT idpudelka, cena-SUM(koszt) AS zysk FROM (<br />
+&emsp;&emsp;SELECT p.idpudelka, p.cena, cz.idczekoladki, cz.koszt*z.sztuk AS koszt FROM zawartosc z<br />
+&emsp;&emsp;JOIN pudelka p ON p.idpudelka=z.idpudelka<br />
+&emsp;&emsp;JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+) GROUP BY idpudelka, cena<br />
+ORDER BY idpudelka<br />
+)<br />
+SELECT SUM(zakup) FROM (<br />
+&emsp;SELECT a.idzamowienia, a.sztuk * d.zysk AS zakup FROM artykuly a<br />
+&emsp;JOIN dane d ON d.idpudelka=a.idpudelka<br />
+);<br />
+### Liczbę porządkową i identyfikator pudełka czekoladek (idpudelka).
+- SELECT SUM(sztuk), idpudelka FROM(<br />
+&emsp;SELECT * FROM artykuly a<br />
+)GROUP BY idpudelka<br />
+ORDER BY idpudelka;<br />

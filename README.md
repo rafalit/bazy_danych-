@@ -76,7 +76,7 @@ JOIN artykuly a ON a.idzamowienia=z.idzamowienia<br />
 JOIN pudelka p ON p.idpudelka=a.idpudelka<br />
 WHERE p.nazwa IN ('Kremowa fantazja', 'Kolekcja jesienna') AND sztuk>1;<br />
 ### Zamówili pudełka, które zawierają czekoladki z migdałami.
-- SELECT DISTINCT k.nazwa, k.ulica, k.miejscowosc FROM klienci k,br />
+- SELECT DISTINCT k.nazwa, k.ulica, k.miejscowosc FROM klienci k <br />
 JOIN zamowienia z ON z.idklienta=k.idklienta<br />
 JOIN artykuly a ON a.idzamowienia=z.idzamowienia<br />
 JOIN zawartosc s ON s.idpudelka=a.idpudelka<br />
@@ -109,7 +109,7 @@ WHERE z.sztuk>=4;<br />
 ### Zawierają czekoladki z nadzieniem truskawkowym,
 - SELECT DISTINCT p.nazwa, p.opis, p.cena FROM pudelka p<br />
 JOIN zawartosc z ON z.idpudelka = p.idpudelka<br />
-OIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
 WHERE cz.nadzienie='truskawki';<br />
 ### Nie zawierają czekoladek w gorzkiej czekoladzie,
 - SELECT p.nazwa, p.opis, p.cena FROM pudelka p<br />
@@ -172,13 +172,11 @@ JOIN klienci k ON z.idklienta=k.idklienta<br />
 WHERE p.nazwa IN (SELECT nazwa FROM dane) AND k.miejscowosc!='Katowice';<br />
 # LAB5
 ### Pudełka, w którym jest najwięcej czekoladek (uwaga: konieczne jest użycie LIMIT)
-- SELECT idpudelka, COUNT(idczekoladki) FROM (<br />
-&emsp; SELECT p.idpudelka, cz.idczekoladki FROM pudelka p<br />
-&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br /?
-&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
-) GROUP BY idpudelka<br />
-ORDER BY count DESC<br />
-LIMIT 1;<br/>
+- SELECT idpudelka, SUM(sztuk) FROM zawartosc z <br />
+GROUP BY idpudelka<br />
+ORDER BY sum DESC<br />
+LIMIT 1;<br />
+
 ### Łącznej liczby czekoladek w poszczególnych pudełkach,
 - SELECT idpudelka, SUM(sztuk) AS ilosc FROM (<br />
 &emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk FROM pudelka p<br />
@@ -187,19 +185,23 @@ LIMIT 1;<br/>
 ) GROUP BY idpudelka<br />
 ORDER BY idpudelka;<br />
 ### Łącznej liczby czekoladek bez orzechów w poszczególnych pudełkach,
-- SELECT idpudelka, SUM(sztuk) AS ilosc FROM (<br />
-&emsp; SELECT p.idpudelka, cz.idczekoladki, cz.orzechy, z.sztuk FROM pudelka p<br />
-&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
+- SELECT idpudelka, COALESCE(dane.sum, 0) FROM pudelka  (<br />
+LEFT JOIN (<br />
+&emsp; SELECT p.idpudelka, SUM(z.sztuk) FROM zawartosc z<br />
+&emsp; JOIN pudelka p ON z.idpudelka=p.idpudelka<br />
 &emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
-&emsp; WHERE cz.orzechy IS NULL<br />
-) GROUP BY idpudelka;<br />
+&emsp; WHERE orzechy IS NULL <br />
+&emsp; GROUP BY p.idpudelka <br />
+) AS dane USING(idpudelka);<br />
 ### Łącznej liczby czekoladek w mlecznej czekoladzie w poszczególnych pudełkach.
-- SELECT idpudelka, SUM(sztuk) AS ilosc FROM (<br />
-&emsp; SELECT p.idpudelka, cz.idczekoladki, cz.czekolada, z.sztuk FROM pudelka p<br />
-&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
-&emsp; WHERE cz.czekolada = 'mleczna'<br />
-) GROUP BY idpudelka;<br />
+- SELECT idpudelka, COALESCE(dane.suma, 0) FROM pudelka <br />
+LEFT JOIN(<br />
+&emsp;SELECT z.idpudelka, SUM(z.sztuk) AS suma FROM zawartosc z<br />
+&emsp;JOIN pudelka p ON p.idpudelka=z.idpudelka<br />
+&emsp;JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+&emsp;WHERE cz.czekolada = 'mleczna'<br />
+&emsp;GROUP BY z.idpudelka<br />
+) AS dane USING(idpudelka)<br />
 ### Masy poszczególnych pudełek,
 - SELECT idpudelka, SUM(sztuk*masa) FROM (<br />
 &emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />

@@ -226,11 +226,9 @@ LIMIT 1;<br />
 ) GROUP BY idpudelka<br />
 )<br />
 ### Średniej wagi pojedynczej czekoladki w poszczególnych pudełkach,
-- SELECT idpudelka, SUM(sztuk*masa)/SUM(sztuk)::float AS masa FROM (<br />
-&emsp; SELECT p.idpudelka, cz.idczekoladki, z.sztuk, cz.masa FROM pudelka p<br />
-&emsp; JOIN zawartosc z ON z.idpudelka=p.idpudelka<br />
-&emsp; JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
-) GROUP BY idpudelka;<br />
+- SELECT z.idpudelka, SUM(z.sztuk* cz.masa)/SUM(z.sztuk) AS średnia FROM zawartosc z <br />
+JOIN czekoladki cz ON cz.idczekoladki=z.idczekoladki<br />
+GROUP BY idpudelka;<br />
 ### Liczby zamówień na poszczególne dni,
 - SELECT datarealizacji, COUNT(idzamowienia) FROM zamowienia<br />
 GROUP BY datarealizacji<br />
